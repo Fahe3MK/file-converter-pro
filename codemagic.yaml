@@ -1,1 +1,28 @@
-
+workflows:
+  file-converter-build:
+    name: File Converter Pro Build
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Run tests
+        script: flutter test
+      - name: Build Android APK
+        script: flutter build apk --release --build-name=1.0.0 --build-number=1
+      - name: Build iOS IPA
+        script: |
+          flutter build ios --release --no-codesign
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace -scheme Runner -sdk iphoneos -configuration Release archive -archivePath $PWD/build/Runner.xcarchive
+          xcodebuild -exportArchive -archivePath $PWD/build/Runner.xcarchive -exportOptionsPlist $PWD/exportOptions.plist -exportPath $PWD/build/ios
+    artifacts:
+      - build/app/outputs/flutter-apk/app-release.apk
+      - build/ios/Runner.ipa
+    publishing:
+      email:
+        recipients:
+          - your-email@gmail.com
